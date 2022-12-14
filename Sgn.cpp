@@ -292,9 +292,9 @@ void Sgn::GenerateStatsOnce()
 		double trianf = CalcFreqTrian(trianspd);
 		double roflf = CalcFreqRofl(roflspd);
 
-		rectstat = (s.f - rectf) * (s.f - rectf);
-		trianstat = (s.f - trianf) * (s.f - trianf);
-		roflstat = (s.f - roflf) * (s.f - roflf);
+		rectstat += (s.f - rectf) * (s.f - rectf);
+		trianstat += (s.f - trianf) * (s.f - trianf);
+		roflstat += (s.f - roflf) * (s.f - roflf);
 	}
 
 
@@ -366,7 +366,7 @@ void Sgn::GenerateStats()
 		
 		sgn_drawer.DrawTwoSignals(GetReal(signal), GetReal(nsignal), fd);
 		spd_drawer.DrawFourSpecters(spd, rectspd, trianspd, roflspd, fd, wlen);
-		disp_drawer.DrawDispersion(rest, trst, rost, start_noise_level, final_noise_level);
+		disp_drawer.DrawDispersion(rest, trst, rost, start_noise_level, nl);
 	}
 
 	
