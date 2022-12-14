@@ -40,7 +40,7 @@ public:
 	void DrawTwoRoflSpecters(vector<double>& signal1, vector<double>& signal2, double fd, int shift, int wlen);
 	void DrawFourSpecters(vector<double> spectr, vector<double> rect, vector<double> trian, vector<double> rofl, double fd, int wlen);
 	void DrawDispersionOnce(double rect, double trian, double rofl, double nl);
-	void DrawDispersion(vector<double>& rect, vector<double>& trian, vector<double>& rofl, double nmin, double nmax);
+	void DrawDispersion(vector<double> rect, vector<double> trian, vector<double> rofl, double nmin, double nmax);
 
 	void test(int i);
 	void Redraw();

@@ -366,6 +366,7 @@ void Sgn::GenerateStats()
 		
 		sgn_drawer.DrawTwoSignals(GetReal(signal), GetReal(nsignal), fd);
 		spd_drawer.DrawFourSpecters(spd, rectspd, trianspd, roflspd, fd, wlen);
+		disp_drawer.DrawDispersion(rest, trst, rost, start_noise_level, final_noise_level);
 	}
 
 	

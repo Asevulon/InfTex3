@@ -1021,7 +1021,7 @@ void Drawer::DrawDispersionOnce(double rect, double trian, double rofl, double n
 
 	dc->BitBlt(0, 0, frame.Width(), frame.Height(), &memDC, 0, 0, SRCCOPY);
 }
-void Drawer::DrawDispersion(vector<double>& rect, vector<double>& trian, vector<double>& rofl, double nmin, double nmax)
+void Drawer::DrawDispersion(vector<double> rect, vector<double> trian, vector<double> rofl, double nmin, double nmax)
 {
 	if (!init) return;
 
