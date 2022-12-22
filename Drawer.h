@@ -38,11 +38,14 @@ public:
 	void DrawTwoSpecters(vector<double>& signal1, vector<double>& signal2, double fd);
 	void DrawTwoSpecters(vector<double>& signal1, vector<double>& signal2, double fd, int shift);
 	void DrawTwoRoflSpecters(vector<double>& signal1, vector<double>& signal2, double fd, int shift, int wlen);
-	void DrawFourSpecters(vector<double> spectr, vector<double> rect, vector<double> trian, vector<double> rofl, double fd, int wlen);
+	void DrawFourSpecters(vector<double> spectr, vector<double> rect, vector<double> trian, vector<double> rofl, double fd);
+	void DrawThreeSignals(vector<double> signal1, vector<double> signal2, vector<double> signal3, /*vector<double> signal4,*/ double fd);
+
 	void DrawDispersionOnce(double rect, double trian, double rofl, double nl);
 	void DrawDispersion(vector<double> rect, vector<double> trian, vector<double> rofl, double nmin, double nmax);
 
 	void test(int i);
 	void Redraw();
 	void Clear();
+	void DrawFrom(Drawer drv);
 };

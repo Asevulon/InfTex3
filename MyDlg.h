@@ -47,6 +47,11 @@ public:
 
 	HANDLE th;
 	afx_msg void OnBnClickedButton1();
+	afx_msg void OnBnClickedTest();
+	afx_msg void OnBnClickedDrawsignal();
+	afx_msg void OnBnClickedDrawrect();
+	afx_msg void OnBnClickedDrawtrian();
+	afx_msg void OnBnClickedDrawall();
 };
 
 

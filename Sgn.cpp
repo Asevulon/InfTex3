@@ -66,6 +66,12 @@ vector<double> Sgn::GetReal(vector<cmplx>& data)
 		res.push_back(item.re);
 	return res;
 }
+vector<cmplx> Sgn::RealToCmplx(vector<double>& data)
+{
+	vector<cmplx>res;
+	for (auto& item : data)res.push_back(cmplx(item, 0));
+	return res;
+}
 
 
 vector<cmplx> Sgn::CreateSignal(double A, double f, double y)
@@ -77,9 +83,17 @@ vector<cmplx> Sgn::CreateSignal(double A, double f, double y)
 	}
 	return res;
 }
+vector<double> Sgn::CreateRealSignal(double A, double f, double y)
+{
+	vector<double> res;
+	for (int i = 0; i < N; i++)
+	{
+		res.push_back(A * sin(2 * pi * f * i / fd + y));
+	}
+	return res;
+}
 
-
-vector<cmplx> Sgn::addNoise(vector<cmplx>& data, double nl)
+vector<cmplx> Sgn::AddNoise(vector<cmplx>& data, double nl)
 {
 	vector<cmplx>res;
 
@@ -96,6 +110,29 @@ vector<cmplx> Sgn::addNoise(vector<cmplx>& data, double nl)
 	{
 		cmplx temp;
 		temp.re = noise[i] * betta + data[i].re;
+		res.push_back(temp);
+	}
+
+
+	return res;
+}
+vector<double> Sgn::AddNoise(vector<double>& data, double nl)
+{
+	vector<double>res;
+
+
+	vector<double>noise = generateNoiseBasics();
+
+
+	double Es = CalcE(data);
+	double En = CalcE(noise);
+	double betta = sqrt(nl * Es / En);
+
+
+	for (int i = 0; i < N; i++)
+	{
+		double temp;
+		temp = noise[i] * betta + data[i];
 		res.push_back(temp);
 	}
 
@@ -141,7 +178,7 @@ double Sgn::CalcE(vector<double>& data)
 
 vector<double>Sgn::CreateSPD(vector<cmplx> data)
 {
-	fourea(N, data, -1);
+	fourea(data.size(), data, -1);
 
 
 	vector<double> res;
@@ -149,55 +186,71 @@ vector<double>Sgn::CreateSPD(vector<cmplx> data)
 		res.push_back(sqrt(item.re * item.re + item.im * item.im));
 	return res;
 }
-vector<double> Sgn::RectWindow(vector<double>& data)
+
+
+vector<double>Sgn::GetSubVector(vector<double>& data, int pos, int len)
 {
 	vector<double> res;
-
-
-	for (int i = wlen / 2; i < N - wlen/2; i++)
-	{
-		double temp = 0;
-		for (int g = i - (wlen / 2); g < i + (wlen / 2); g++)
-		{
-			temp += data[g];
-		}
-		res.push_back(temp / wlen);
-	}
-
-
+	for (int i = pos; i < pos + len; i++)res.push_back(data[i]);
 	return res;
 }
-vector<double> Sgn::TriangleWindow(vector<double>& data)
+vector<vector<double>> Sgn::RectWindow(vector<double>& data)
 {
-	vector<double> res;
+	vector<vector<double>> res;
 
 
-	for (int i = wlen / 2; i < N - wlen/2; i++)
+	int num = data.size() / wlen;
+	for (int i = 0; i < num; i++)
 	{
-		double temp = 0;
-		for (int g = i - wlen / 2; g < i + wlen / 2; g++)
+		res.push_back(GetSubVector(data, i * wlen, wlen));
+	}
+	if (data.size() % wlen != 0)
+	{
+		vector<double> temp(wlen, 0);
+		for (int i = num * wlen; i < data.size(); i++)
 		{
-			temp += data[g] * (wlen - 2 * abs(i - g)) / float(N);
+			temp[i - num * wlen] = data[i];
 		}
 		res.push_back(temp);
 	}
 
+	return res;
+}
+vector<vector<double>> Sgn::TriangleWindow(vector<double>& data)
+{
+	vector<vector<double>> res;
+
+
+	int num = data.size() / wlen;
+	for (int i = 0; i < num; i++)
+	{
+		vector<double> temp = GetSubVector(data, i * wlen, wlen);
+		for (int g = 0; g < temp.size(); g++)
+		{
+			temp[g] *= (wlen - 2 * abs(g - wlen / 2)) / float(wlen);
+		}
+		res.push_back(temp);
+	}
+	if (data.size() % wlen != 0)
+	{
+		vector<double> temp(wlen, 0);
+		for (int i = num * wlen; i < data.size(); i++)
+		{
+			temp[i - num * wlen] = data[i]* (wlen - 2 * abs(i-num*wlen - wlen / 2)) / float(wlen);
+		}
+		res.push_back(temp);
+	}
 
 	return res;
 }
-vector<double> Sgn::RoflRectWindow(vector<double>& data)
+vector<vector<double>> Sgn::OverlappingRectWindow(vector<double>& data)
 {
-	vector<double> res;
+	vector<vector<double>> res;
 
 
-	for (int i = wlen / 2; i < N - wlen; i+=wlen)
+	for (int i = 0; i < data.size()-wlen+1; i+=wlen/4)
 	{
-		double temp = 0;
-		for (int g = i - (wlen / 2); g < i + (wlen / 2); g++)
-		{
-			temp += data[g];
-		}
-		res.push_back(temp / wlen);
+		res.push_back(GetSubVector(data, i, wlen));
 	}
 
 
@@ -218,6 +271,11 @@ int Sgn::Max(vector<double>& data)
 }
 
 
+double Sgn::CalcF(vector<double>& data)
+{
+	double res = Max(data) * fd / (data.size() - 1);
+	return res;
+}
 double Sgn::CalcFreqSPD(vector<double>& data)
 {
 	double res = Max(data) * fd / (N - 1);
@@ -260,116 +318,129 @@ double Sgn::CalcFreqRofl(vector<double>& data)
 	return  id * fd / (N - 1);
 }
 
+
+double Sgn::CalcStats(vector < vector<double>>& data)
+{
+	double res = 0;
+	for (auto& item : data)
+	{
+		vector<double> spd = CreateSPD(RealToCmplx(item));
+		double f = CalcF(spd);
+		res += (s.f - f) * (s.f - f);
+	}
+	res = res / data.size();
+	return res;
+}
+
+
 void Sgn::GenerateStatsOnce()
 {
 	srand(time(NULL));
 
 
-	vector<cmplx>signal = CreateSignal(s.A, s.f, s.y);
-	vector <cmplx>nsignal = addNoise(signal, start_noise_level);
-	sgn_drawer.DrawTwoSignals(GetReal(signal), GetReal(nsignal), fd);
-
-	vector<double> spd = CreateSPD(nsignal);
-	vector<double> rectspd = RectWindow(spd);
-	vector<double>trianspd = TriangleWindow(spd);
-	vector<double>roflspd = RoflRectWindow(spd);
-	spd_drawer.DrawFourSpecters(spd, rectspd, trianspd, roflspd, fd, wlen);
+	vector<double> signal = CreateRealSignal(s.A, s.f, s.y);
+	vector<double> nsignal = AddNoise(signal, start_noise_level);
 
 
-	double rectstat = 0;
-	double trianstat = 0;
-	double roflstat = 0;
-	for (int i = 0; i < gennum; i++)
-	{
-		nsignal = addNoise(signal, start_noise_level);
-		
-		spd = CreateSPD(nsignal);
-		rectspd = RectWindow(spd);
-		trianspd = TriangleWindow(spd);
-		roflspd = RoflRectWindow(spd);
-
-		double rectf = CalcFreqRect(rectspd);
-		double trianf = CalcFreqTrian(trianspd);
-		double roflf = CalcFreqRofl(roflspd);
-
-		rectstat += (s.f - rectf) * (s.f - rectf);
-		trianstat += (s.f - trianf) * (s.f - trianf);
-		roflstat += (s.f - roflf) * (s.f - roflf);
-	}
+	auto rect = RectWindow(nsignal);
+	auto trian = TriangleWindow(nsignal);
+	auto ovrect = OverlappingRectWindow(nsignal);
+	sgn_drawer.DrawThreeSignals(nsignal, ToOne(rect), ToOne(trian), fd);
 
 
-	rectstat = sqrt(rectstat / gennum);
-	trianstat = sqrt(trianstat / gennum);
-	roflstat = sqrt(roflstat / gennum);
+	vector<double>spd = CreateSPD(RealToCmplx(nsignal));
+	auto rectspd = CreateSPD(RealToCmplx(rect[0]));
+	auto trianspd = CreateSPD(RealToCmplx(trian[0]));
+	auto ovrectspd = CreateSPD(RealToCmplx(ovrect[0]));
+	spd_drawer.DrawFourSpecters(spd, rectspd, trianspd, ovrectspd, fd);
 
 
-	disp_drawer.DrawDispersionOnce(rectstat, trianstat, roflstat, start_noise_level);
+	double rst = CalcStats(rect);
+	double trst = CalcStats(trian);
+	double ovrst = CalcStats(ovrect);
+
+
+	disp_drawer.DrawDispersionOnce(rst, trst, ovrst, start_noise_level);
 }
 void Sgn::GenerateStats()
 {
 	srand(time(NULL));
 
 
-	vector<cmplx>signal = CreateSignal(s.A, s.f, s.y);
-	vector <cmplx>nsignal = addNoise(signal, start_noise_level);
-	sgn_drawer.DrawTwoSignals(GetReal(signal), GetReal(nsignal), fd);
+	vector<double> signal = CreateRealSignal(s.A, s.f, s.y);
+	vector<double> nsignal;
 
-	vector<double> spd = CreateSPD(nsignal);
-	vector<double> rectspd = RectWindow(spd);
-	vector<double>trianspd = TriangleWindow(spd);
-	vector<double>roflspd = RoflRectWindow(spd);
-	spd_drawer.DrawFourSpecters(spd, rectspd, trianspd, roflspd, fd, wlen);
+	vector<vector<double>>rect;
+	vector<vector<double>>trian;
+	vector<vector<double>>ovrect;
 
-	vector<double>rest;
-	vector<double>trst;
-	vector<double>rost;
-	
+
+	vector<double>rectspd;
+	vector<double>trianspd;
+	vector<double>ovrectspd;
+	vector<double>spd;
+
+
+	vector<double> rectstats;
+	vector<double> trianstats;
+	vector<double> ovrectstats;
+
 
 	double steplen = (final_noise_level - start_noise_level) / (steps - 1);
 	for (double nl = start_noise_level; nl <= final_noise_level; nl += steplen)
 	{
-		double rectstat = 0;
-		double trianstat = 0;
-		double roflstat = 0;
-
-
+		double rst = 0;
+		double trst = 0;
+		double ovrst = 0;
 		for (int i = 0; i < gennum; i++)
 		{
-
-			nsignal = addNoise(signal, nl);
-			
-
-			spd = CreateSPD(nsignal);
-			rectspd = RectWindow(spd);
-			trianspd = TriangleWindow(spd);
-			roflspd = RoflRectWindow(spd);
+			nsignal = AddNoise(signal, nl);
 
 
-			double rectf = CalcFreqRect(rectspd);
-			double trianf = CalcFreqTrian(trianspd);
-			double roflf = CalcFreqRofl(roflspd);
+			rect = RectWindow(nsignal);
+			trian = TriangleWindow(nsignal);
+			ovrect = OverlappingRectWindow(nsignal);
 
-			rectstat += (s.f - rectf) * (s.f - rectf);
-			trianstat += (s.f - trianf) * (s.f - trianf);
-			roflstat += (s.f - roflf) * (s.f - roflf);
+
+			rst += CalcStats(rect);
+			trst += CalcStats(trian);
+			ovrst += CalcStats(ovrect);
 		}
+		rectstats.push_back(rst / gennum);
+		trianstats.push_back(trst / gennum);
+		ovrectstats.push_back(ovrst / gennum);
 
 
-		rectstat = sqrt(rectstat / gennum);
-		trianstat = sqrt(trianstat / gennum);
-		roflstat = sqrt(roflstat / gennum);
-
-		rest.push_back(rectstat);
-		trst.push_back(trianstat);
-		rost.push_back(roflstat);
-		
-		
-		sgn_drawer.DrawTwoSignals(GetReal(signal), GetReal(nsignal), fd);
-		spd_drawer.DrawFourSpecters(spd, rectspd, trianspd, roflspd, fd, wlen);
-		disp_drawer.DrawDispersion(rest, trst, rost, start_noise_level, nl);
+		spd = CreateSPD(RealToCmplx(nsignal));
+		rectspd = CreateSPD(RealToCmplx(rect[0]));
+		trianspd = CreateSPD(RealToCmplx(trian[0]));
+		ovrectspd = CreateSPD(RealToCmplx(ovrect[0]));
+		sgn_drawer.DrawThreeSignals(nsignal, ToOne(rect), ToOne(trian), fd);
+		spd_drawer.DrawFourSpecters(spd, rectspd, trianspd, ovrectspd, fd);
+		disp_drawer.DrawDispersion(rectstats, trianstats, ovrectstats, start_noise_level, nl);
 	}
 
-	
 
-	disp_drawer.DrawDispersion(rest, trst, rost, start_noise_level, final_noise_level);
+	disp_drawer.DrawDispersion(rectstats, trianstats, ovrectstats, start_noise_level, final_noise_level);
+}
+
+
+void Sgn::test()
+{
+	auto signal = CreateRealSignal(s.A,s.f,s.y);
+	auto rect = RectWindow(signal);
+	auto trian = TriangleWindow(signal);
+	auto ovrect = OverlappingRectWindow(signal);
+	sgn_drawer.DrawThreeSignals(signal, ToOne(rect), ToOne(trian), fd);
+}
+
+
+vector<double> Sgn::ToOne(vector < vector<double>>& data)
+{
+	vector<double> res;
+	for (auto& obj : data)
+	{
+		for (auto& item : obj)res.push_back(item);
+	}
+	return res;
 }

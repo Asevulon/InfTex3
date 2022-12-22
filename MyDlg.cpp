@@ -20,15 +20,15 @@
 MyDlg::MyDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_INFTEX3_DIALOG, pParent)
 	, A(1)
-	, f(100)
+	, f(20)
 	, y(0)
 	, nlmin(0)
-	, nlmax(10)
+	, nlmax(100)
 	, steps(50)
 	, fd(400)
-	, N(512)
+	, N(4)
 	, GN(1000)
-	, wlen(12)
+	, wlen(128)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -53,6 +53,7 @@ BEGIN_MESSAGE_MAP(MyDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDOK, &MyDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDC_BUTTON1, &MyDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_TEST,&MyDlg::OnBnClickedTest)
 END_MESSAGE_MAP()
 
 
@@ -120,14 +121,15 @@ void MyDlg::OnBnClickedOk()
 
 
 	sgn.SetFD(fd);
-	sgn.SetN(N);
-	sgn.SetStartNoiseLevel(nlmin);
-	sgn.SetFinalNoiseLevel(nlmax);
+	sgn.SetN(N * wlen);
+	sgn.SetStartNoiseLevel(nlmin/100);
+	sgn.SetFinalNoiseLevel(nlmax/100);
 	sgn.SetNoiseSteps(steps);
 	sgn.SetGenNum(GN);
 	sgn.SetSinParam(A, f, y);
 	sgn.SetWlen(wlen);
 
+	TerminateThread(th, 0);
 	th = CreateThread(NULL, 0, thfunc, this, 0, NULL);
 
 }
@@ -152,13 +154,59 @@ void MyDlg::OnBnClickedButton1()
 
 
 	sgn.SetFD(fd);
-	sgn.SetN(N);
-	sgn.SetStartNoiseLevel(nlmin);
-	sgn.SetFinalNoiseLevel(nlmax);
+	sgn.SetN(N * wlen);
+	sgn.SetStartNoiseLevel(nlmin/100);
+	sgn.SetFinalNoiseLevel(nlmax/100);
 	sgn.SetNoiseSteps(steps);
 	sgn.SetGenNum(GN);
 	sgn.SetSinParam(A, f, y);
 	sgn.SetWlen(wlen);
 
+	TerminateThread(th, 0);
 	th = CreateThread(NULL, 0, thfunc2, this, 0, NULL);
+}
+
+
+void MyDlg::OnBnClickedTest()
+{
+	// TODO: добавьте свой код обработчика уведомлений
+	UpdateData();
+
+
+	sgn.SetFD(fd);
+	sgn.SetN(N * wlen);
+	sgn.SetStartNoiseLevel(nlmin/100);
+	sgn.SetFinalNoiseLevel(nlmax/100);
+	sgn.SetNoiseSteps(steps);
+	sgn.SetGenNum(GN);
+	sgn.SetSinParam(A, f, y);
+	sgn.SetWlen(wlen);
+
+	sgn.test();
+}
+
+
+void MyDlg::OnBnClickedDrawsignal()
+{
+	// TODO: добавьте свой код обработчика уведомлений
+
+}
+
+
+void MyDlg::OnBnClickedDrawrect()
+{
+	// TODO: добавьте свой код обработчика уведомлений
+}
+
+
+void MyDlg::OnBnClickedDrawtrian()
+{
+	// TODO: добавьте свой код обработчика уведомлений
+}
+
+
+void MyDlg::OnBnClickedDrawall()
+{
+	// TODO: добавьте свой код обработчика уведомлений
+	
 }
